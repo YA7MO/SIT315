@@ -1,0 +1,57 @@
+volatile byte LED1 = 0;
+volatile byte LED2 = 0;
+volatile byte LED3 = 0;
+int ledPin = 10;
+void setup()
+{
+   
+  noInterrupts();   
+  
+  TCCR1A = 0; 
+  TCCR1B = 0;  
+  TCNT1 = 0;
+  OCR1A = 62499;
+  TCCR1B |= (1 << CS12) | (1 << CS10);
+  TIMSK1 |= (1 << OCIE1A);
+  TCCR1B |= (1 << WGM12);
+  interrupts();
+  
+  Serial.begin(9600);
+  
+  pinMode(11, OUTPUT); 
+  pinMode(12, OUTPUT);
+  pinMode(13, OUTPUT);
+  pinMode(ledPin, OUTPUT); 
+  
+  pinMode(2, INPUT);
+  pinMode(3, INPUT);
+  pinMode(4, INPUT);
+  
+  
+  PCICR |=0b00000111; //enables the interrupt for the ports
+  PCMSK2 |= 0b00011100;// enables interrupts on more than one pin.
+}
+
+void loop()
+{
+ 
+  digitalWrite(11,LED1);
+  digitalWrite(12,LED2);
+  digitalWrite(13,LED3);
+  
+  Serial.println("in loop");
+  delay(500);
+// Block of code.
+}
+
+ISR(TIMER1_COMPA_vect) { 
+  Serial.println("Timer interrupt");
+  digitalWrite(ledPin, digitalRead(ledPin) ^ 1);
+}
+
+ISR(PCINT2_vect){
+  LED1 = PIND & B00000100;
+  LED2 = PIND & B00001000;
+  LED3 = PIND & B00010000;
+  Serial.println("interrupted");
+}
